@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lua Obfuscator Pro</title>
+<script src="https://cdn.jsdelivr.net/npm/disable-devtool"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+:root{
+--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a2e;
+--border:#2a2a3e;--text:#e0e0e0;--muted:#888;
+--cyan:#00d4ff;--purple:#7b2ff7;--green:#00ff88;--red:#ff4444;
+}
+body{
+background:radial-gradient(circle at 20% 20%,#1a1a2e 0%,#0a0a0f 60%);
+color:var(--text);min-height:100vh;padding:20px;
+animation:fadeIn .5s ease;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.container{max-width:1400px;margin:0 auto}
+
+header{text-align:center;padding:40px 0 30px}
+header h1{
+font-size:3rem;font-weight:800;
+background:linear-gradient(90deg,var(--cyan),var(--purple),var(--cyan));
+background-size:200% auto;
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+animation:shine 3s linear infinite;
+}
+@keyframes shine{to{background-position:200% center}}
+header p{color:var(--muted);font-size:.95rem;margin-top:8px}
+.badge{
+display:inline-block;padding:4px 12px;margin-top:12px;
+background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);
+border-radius:20px;font-size:.75rem;color:var(--cyan);
+}
+
+.toolbar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.btn{
+padding:12px 22px;border:none;border-radius:10px;cursor:pointer;
+font-weight:600;font-size:.9rem;transition:all .25s;
+display:inline-flex;align-items:center;gap:6px;
+}
+.btn-primary{background:linear-gradient(135deg,var(--cyan),var(--purple));color:#fff}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,212,255,.4)}
+.btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{background:#252540;border-color:var(--cyan)}
+.btn-danger{background:rgba(139,26,26,.8);color:#fff}
+.btn-danger:hover{background:#a02020}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.file-input-wrapper{position:relative;overflow:hidden;display:inline-block}
+.file-input-wrapper input[type="file"]{
+position:absolute;left:0;top:0;opacity:0;cursor:pointer;width:100%;height:100%;
+}
+
+.options-panel{
+background:var(--bg2);border-radius:14px;border:1px solid var(--border);
+padding:22px;margin-bottom:20px;transition:border-color .3s;
+}
+.options-panel:hover{border-color:rgba(0,212,255,.3)}
+.options-panel h3{color:var(--purple);margin-bottom:16px;font-size:1rem}
+.options-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.option-item{display:flex;align-items:center;gap:10px}
+.option-item input[type="checkbox"]{
+width:20px;height:20px;accent-color:var(--cyan);cursor:pointer;
+}
+.option-item input[type="text"]{
+flex:1;padding:10px 14px;background:#0d0d14;
+border:1px solid var(--border);border-radius:8px;
+color:var(--text);font-size:.85rem;transition:border-color .3s;
+}
+.option-item input[type="text"]:focus{outline:none;border-color:var(--cyan)}
+.option-item label{font-size:.85rem;color:#aaa;cursor:pointer;user-select:none}
+
+.editor-container{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:900px){.editor-container{grid-template-columns:1fr}}
+.editor-box{
+background:var(--bg2);border-radius:14px;border:1px solid var(--border);
+overflow:hidden;transition:border-color .3s;
+}
+.editor-box:focus-within{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,212,255,.1)}
+.editor-header{
+padding:14px 18px;background:var(--bg3);border-bottom:1px solid var(--border);
+display:flex;justify-content:space-between;align-items:center;
+}
+.editor-header span{font-weight:600;color:var(--cyan);font-size:.9rem}
+.editor-header .char-count{color:var(--muted);font-size:.75rem;font-family:Consolas,monospace}
+textarea{
+width:100%;height:380px;background:#08080d;border:none;
+color:var(--text);padding:18px;font-family:Consolas,monospace;
+font-size:13px;line-height:1.7;resize:vertical;outline:none;
+}
+textarea::placeholder{color:#444}
+
+.result-box{
+background:var(--bg2);border-radius:14px;border:1px solid var(--border);
+padding:24px;margin-top:20px;display:none;
+animation:slideIn .4s ease;
+}
+@keyframes slideIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+.result-box h3{color:var(--cyan);margin-bottom:12px;font-size:.95rem}
+.result-box .code{
+background:#08080d;padding:14px;border-radius:10px;
+font-family:Consolas,monospace;font-size:.82rem;
+word-break:break-all;color:var(--green);border:1px solid var(--border);
+margin-bottom:12px;line-height:1.6;
+}
+.result-box .loadstring{color:var(--purple)}
+.result-box .btn{margin-right:8px;margin-bottom:8px}
+
+.status-bar{
+padding:14px 20px;background:var(--bg3);border-radius:10px;
+font-size:.82rem;color:var(--muted);
+display:flex;justify-content:space-between;align-items:center;
+margin-top:20px;
+}
+.status-bar .dot{
+display:inline-block;width:8px;height:8px;border-radius:50%;
+background:var(--green);margin-right:8px;
+animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.success{color:var(--green)!important}
+.error{color:var(--red)!important}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>🔐 Lua Obfuscator Pro</h1>
+<p>Anti-Tamper • Raw Link • Delta X Ready</p>
+<div class="badge">⚡ Tối ưu tốc độ • Không lag</div>
+</header>
+
+<div class="toolbar">
+<div class="file-input-wrapper">
+<button class="btn btn-secondary">📁 Chọn file</button>
+<input type="file" id="fileInput" accept=".lua,.txt" onchange="loadFile(event)">
+</div>
+<button class="btn btn-primary" id="btnObfuscate" onclick="obfuscate()">⚡ Obfuscate</button>
+<button class="btn btn-secondary" onclick="copyRaw()">📋 Copy Raw</button>
+<button class="btn btn-secondary" onclick="downloadOutput()">⬇️ Tải xuống</button>
+<button class="btn btn-danger" onclick="clearAll()">🧹 Xóa hết</button>
+</div>
+
+<div class="options-panel">
+<h3>⚙️ Tùy chọn bảo vệ</h3>
+<div class="options-grid">
+<div class="option-item">
+<label style="min-width:90px">Tên script:</label>
+<input type="text" id="scriptName" placeholder="my_script" value="my_script">
+</div>
+<div class="option-item">
+<input type="checkbox" id="antiTamper" checked>
+<label for="antiTamper">Chống can thiệp (nhẹ)</label>
+</div>
+<div class="option-item">
+<input type="checkbox" id="minify" checked>
+<label for="minify">Nén code</label>
+</div>
+<div class="option-item">
+<input type="checkbox" id="wrapLoadstring" checked>
+<label for="wrapLoadstring">Wrap loadstring</label>
+</div>
+</div>
+</div>
+
+<div class="editor-container">
+<div class="editor-box">
+<div class="editor-header">
+<span>📥 Code gốc</span>
+<span class="char-count" id="inputCount">0 ký tự</span>
+</div>
+<textarea id="inputCode" placeholder="Dán code Lua vào đây..." oninput="updateCount()"></textarea>
+</div>
+<div class="editor-box">
+<div class="editor-header">
+<span>📤 Code đã xử lý</span>
+<span class="char-count" id="outputCount">0 ký tự</span>
+</div>
+<textarea id="outputCode" readonly placeholder="Kết quả sẽ hiện ở đây..."></textarea>
+</div>
+</div>
+
+<div class="result-box" id="resultBox">
+<h3>🔗 Link Raw</h3>
+<div class="code" id="rawUrl"></div>
+<button class="btn btn-secondary" onclick="copyUrl()">📋 Copy Link</button>
+
+<h3 style="margin-top:20px;color:var(--purple)">⚡ Loadstring cho Delta X</h3>
+<div class="code loadstring" id="loadstringCode"></div>
+<button class="btn btn-primary" onclick="copyLoadstring()">📋 Copy Loadstring</button>
+</div>
+
+<div class="status-bar">
+<span><span class="dot"></span><span id="statusText">Sẵn sàng</span></span>
+<span id="sizeInfo">v4.0.0</span>
+</div>
+</div>
+
+<script>
+DisableDevtool({ondevtoolopen:function(){window.location.href='about:blank'},disableMenu:true,clearLog:true});
+
+function updateCount(){
+var i=document.getElementById('inputCode'),o=document.getElementById('outputCode');
+document.getElementById('inputCount').textContent=i.value.length.toLocaleString()+' ký tự';
+document.getElementById('outputCount').textContent=o.value.length.toLocaleString()+' ký tự';
+}
+
+function loadFile(e){
+var f=e.target.files[0];if(!f)return;
+var r=new FileReader();
+r.onload=function(ev){
+document.getElementById('inputCode').value=ev.target.result;
+updateCount();
+setStatus('Đã load: '+f.name,'success');
+};
+r.readAsText(f);
+}
+
+async function obfuscate(){
+var code=document.getElementById('inputCode').value.trim();
+if(!code){setStatus('Nhập code đã!','error');return}
+
+var btn=document.getElementById('btnObfuscate');
+btn.disabled=true;
+btn.innerHTML='Đang xử lý...';
+setStatus('Đang obfuscate...','');
+
+try{
+var res=await fetch('/api/obfuscate',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+code:code,
+options:{
+antiTamper:document.getElementById('antiTamper').checked,
+minify:document.getElementById('minify').checked,
+wrapLoadstring:document.getElementById('wrapLoadstring').checked
+}
+})
+});
+var data=await res.json();
+if(data.ok){
+document.getElementById('outputCode').value=data.output;
+updateCount();
+document.getElementById('resultBox').style.display='block';
+document.getElementById('rawUrl').textContent=data.raw_url;
+document.getElementById('loadstringCode').textContent=data.loadstring;
+document.getElementById('sizeInfo').textContent='Kích thước: '+data.size.toLocaleString()+' bytes';
+setStatus('Thành công!','success');
+}else{
+setStatus('Lỗi: '+data.error,'error');
+}
+}catch(e){
+setStatus('Lỗi kết nối: '+e.message,'error');
+}finally{
+btn.disabled=false;
+btn.innerHTML='⚡ Obfuscate';
+}
+}
+
+function copyUrl(){
+var u=document.getElementById('rawUrl').textContent;
+if(!u)return;
+navigator.clipboard.writeText(u).then(function(){setStatus('Đã copy link raw!','success')});
+}
+
+function copyLoadstring(){
+var l=document.getElementById('loadstringCode').textContent;
+if(!l)return;
+navigator.clipboard.writeText(l).then(function(){setStatus('Đã copy loadstring!','success')});
+}
+
+function copyRaw(){
+var o=document.getElementById('outputCode').value;
+if(!o)return;
+navigator.clipboard.writeText(o).then(function(){setStatus('Đã copy raw!','success')});
+}
+
+function downloadOutput(){
+var o=document.getElementById('outputCode').value;
+if(!o)return;
+var name=document.getElementById('scriptName').value||'script';
+var b=new Blob([o],{type:'text/plain'});
+var u=URL.createObjectURL(b);
+var a=document.createElement('a');
+a.href=u;a.download=name+'.lua';
+document.body.appendChild(a);a.click();document.body.removeChild(a);
+URL.revokeObjectURL(u);
+setStatus('Đã tải file!','success');
+}
+
+function clearAll(){
+document.getElementById('inputCode').value='';
+document.getElementById('outputCode').value='';
+document.getElementById('resultBox').style.display='none';
+updateCount();
+setStatus('Đã xóa','');
+}
+
+function setStatus(m,t){
+var s=document.getElementById('statusText');
+s.textContent=m;
+s.className=t||'';
+}
+</script>
+</body>
+  </html>
